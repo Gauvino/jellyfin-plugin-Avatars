@@ -270,38 +270,64 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
                     return BadRequest("Avatar ID is required");
                 }
 
-                // Get current user ID from claims
+                // Get user ID
+                Guid currentUserId = Guid.Empty;
                 var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == "sub" || c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-                if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var claimUserId))
                 {
-                    // Try to get user from username claim
+                    currentUserId = claimUserId;
+                }
+                else
+                {
                     var usernameClaim = User.Claims.FirstOrDefault(c => c.Type == "name" || c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
                     if (usernameClaim != null)
                     {
                         var user = _userManager.GetUserByName(usernameClaim.Value);
                         if (user != null)
                         {
-                            userId = user.Id;
+                            currentUserId = user.Id;
                         }
-                        else
-                        {
-                            return Unauthorized("User not found");
-                        }
-                    }
-                    else
-                    {
-                        return Unauthorized("User not authenticated");
                     }
                 }
 
-                // Extract the auth token from the request
+                if (currentUserId == Guid.Empty)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                Guid targetUserId = Guid.Empty;
+
+                if (!string.IsNullOrEmpty(request.UserId))
+                {
+                    if (Guid.TryParse(request.UserId, out var parsedUserId))
+                    {
+                        targetUserId = parsedUserId;
+                    }
+                    else
+                    {
+                        return BadRequest("Invalid user ID format");
+                    }
+                }
+                else
+                {
+                    targetUserId = currentUserId;
+                }
+
+                if (targetUserId != currentUserId)
+                {
+                    if (!User.IsInRole("Administrator"))
+                    {
+                        return Forbid("Only administrators can modify other users' avatars");
+                    }
+                }
+
                 var authToken = Request.Headers["X-Emby-Token"].FirstOrDefault();
                 if (string.IsNullOrEmpty(authToken))
                 {
                     authToken = Request.Query["api_key"].FirstOrDefault();
                 }
 
-                await _avatarService.SetUserAvatarAsync(userId, request.AvatarId, authToken);
+                await _avatarService.SetUserAvatarAsync(targetUserId, request.AvatarId, authToken);
 
                 return Ok(new { message = "Avatar set successfully" });
             }

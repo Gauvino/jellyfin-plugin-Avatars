@@ -8,6 +8,7 @@
 
     let avatars = [];
     let selectedAvatarId = null;
+    let targetUserId = null;
 
     function createModal() {
         if (document.getElementById(CONFIG.modalId)) return;
@@ -132,21 +133,26 @@
     }
 
     async function applyAvatar() {
-        if (!selectedAvatarId) return;
+         if (!selectedAvatarId) return;
 
-        const btn = document.getElementById('applyAvatarBtn');
-        btn.disabled = true;
-        btn.textContent = 'Applying...';
+         const btn = document.getElementById('applyAvatarBtn');
+         btn.disabled = true;
+         btn.textContent = 'Applying...';
 
-        try {
-            const response = await fetch(ApiClient.getUrl(CONFIG.apiBaseUrl + '/SetAvatar'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Emby-Token': ApiClient.accessToken()
-                },
-                body: JSON.stringify({ avatarId: selectedAvatarId })
-            });
+         try {
+             const requestBody = { avatarId: selectedAvatarId };
+             if (targetUserId) {
+                 requestBody.userId = targetUserId;
+             }
+
+             const response = await fetch(ApiClient.getUrl(CONFIG.apiBaseUrl + '/SetAvatar'), {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'X-Emby-Token': ApiClient.accessToken()
+                 },
+                 body: JSON.stringify(requestBody)
+             });
 
             if (!response.ok) {
                 throw new Error('HTTP ' + response.status);
@@ -178,47 +184,50 @@
     }
 
     function injectButton() {
-        if (!location.hash.includes('userprofile')) return;
-        if (document.getElementById('btnChooseGetAvatar')) return;
+         if (!location.hash.includes('userprofile')) return;
+         if (document.getElementById('btnChooseGetAvatar')) return;
 
-        const targetSelectors = [
-            '.selectImageContainer',
-            '.userProfileSettingsPage .detailSection',
-            '#btnDeleteImage',
-            '.imageEditorContainer'
-        ];
+         const hashParams = new URLSearchParams(location.hash.split('?')[1]);
+         targetUserId = hashParams.get('userId') || null;
 
-        let target = null;
-        for (const selector of targetSelectors) {
-            target = document.querySelector(selector);
-            if (target) break;
-        }
+         const targetSelectors = [
+             '.selectImageContainer',
+             '.userProfileSettingsPage .detailSection',
+             '#btnDeleteImage',
+             '.imageEditorContainer'
+         ];
 
-        if (!target) return;
+         let target = null;
+         for (const selector of targetSelectors) {
+             target = document.querySelector(selector);
+             if (target) break;
+         }
 
-        const btn = document.createElement('button');
-        btn.id = 'btnChooseGetAvatar';
-        btn.setAttribute('is', 'emby-button');
-        btn.className = 'raised button-alt block';
-        btn.style.marginTop = '1em';
-        btn.style.display = 'flex';
-        btn.style.alignItems = 'center';
-        btn.style.justifyContent = 'center';
-        btn.style.gap = '0.5em';
-        btn.innerHTML = '<span class="material-icons person" style="margin:0;"></span><span>Choose from Gallery</span>';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            openModal();
-        };
+         if (!target) return;
 
-        if (target.id === 'btnDeleteImage') {
-            target.parentElement.appendChild(btn);
-        } else {
-            target.appendChild(btn);
-        }
+         const btn = document.createElement('button');
+         btn.id = 'btnChooseGetAvatar';
+         btn.setAttribute('is', 'emby-button');
+         btn.className = 'raised button-alt block';
+         btn.style.marginTop = '1em';
+         btn.style.display = 'flex';
+         btn.style.alignItems = 'center';
+         btn.style.justifyContent = 'center';
+         btn.style.gap = '0.5em';
+         btn.innerHTML = '<span class="material-icons person" style="margin:0;"></span><span>Choose from Gallery</span>';
+         btn.onclick = function(e) {
+             e.preventDefault();
+             openModal();
+         };
 
-        console.log('GetAvatar: Button injected');
-    }
+         if (target.id === 'btnDeleteImage') {
+             target.parentElement.appendChild(btn);
+         } else {
+             target.appendChild(btn);
+         }
+
+        // console.log('GetAvatar: Button injected', targetUserId ? `for user ${targetUserId}` : 'for current user'); - DEBUG
+     }
 
     function init() {
         console.log('GetAvatar: Initializing...');
