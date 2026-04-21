@@ -30,7 +30,7 @@ You just have to add avatar images, click on "Choose file" and "Upload". The ima
 
 ## User View
 
-User profile page will have a new button "Choose Your Avatar".
+User profile page will have a new button "Choose from Gallery".
 
 ![User View](./assets/user_view.png)
 
