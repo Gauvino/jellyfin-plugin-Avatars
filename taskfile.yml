@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  build:
+    desc: Build and deploy plugin to Jellyfin
+    cmds:
+      - echo "Building..."
+      - dotnet build Jellyfin.Plugin.GetAvatar/Jellyfin.Plugin.GetAvatar.csproj -c Debug
+      - rm -rf config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar
+      - mkdir -p config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar
+      - cp -f Jellyfin.Plugin.GetAvatar/bin/Debug/net9.0/Jellyfin.Plugin.GetAvatar.dll config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar/
+      - cp -f Jellyfin.Plugin.GetAvatar/bin/Debug/net9.0/Jellyfin.Plugin.GetAvatar.xml config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar/
+      - docker exec jellyfin sh -c "chown -R 911:911 /config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar"
+      - docker restart jellyfin
+      - echo "Done!"
+
+  clean:
+    desc: Remove plugin
+    cmds:
+      - rm -rf Jellyfin.Plugin.GetAvatar/bin Jellyfin.Plugin.GetAvatar/obj
+      - rm -rf config/data/plugins/configurations/Jellyfin.Plugin.GetAvatar
+      - docker restart jellyfin
