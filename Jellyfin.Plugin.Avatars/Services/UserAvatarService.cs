@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -49,8 +50,7 @@ public class UserAvatarService
     public UserAvatarMapping? GetMapping(Guid userId)
     {
         return Plugin.Instance?.Configuration.UserAvatars
-            .FirstOrDefault(m => string.Equals(m.UserId, userId.ToString("N"), StringComparison.OrdinalIgnoreCase)
-                                 || string.Equals(m.UserId, userId.ToString(), StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(m => MatchesUser(m, userId));
     }
 
     /// <summary>
@@ -162,9 +162,7 @@ public class UserAvatarService
         var plugin = Plugin.Instance;
         if (plugin is not null)
         {
-            var removed = plugin.Configuration.UserAvatars.RemoveAll(m =>
-                string.Equals(m.UserId, userId.ToString("N"), StringComparison.OrdinalIgnoreCase)
-                || string.Equals(m.UserId, userId.ToString(), StringComparison.OrdinalIgnoreCase));
+            var removed = plugin.Configuration.UserAvatars.RemoveAll(m => MatchesUser(m, userId));
             if (removed > 0)
             {
                 plugin.SaveConfiguration();
@@ -173,6 +171,125 @@ public class UserAvatarService
 
         _logger.LogInformation("Removed avatar for user {User}", user.Username);
         return true;
+    }
+
+    /// <summary>
+    /// Re-applies user avatars where the on-disk profile image is missing
+    /// (e.g. after a Jellyfin data wipe). Mappings whose source no longer
+    /// resolves are dropped from configuration.
+    /// </summary>
+    /// <returns>The number of profile images successfully restored.</returns>
+    public async Task<int> ValidateAsync()
+    {
+        var plugin = Plugin.Instance;
+        if (plugin is null)
+        {
+            return 0;
+        }
+
+        var repaired = 0;
+        var toRemove = new List<UserAvatarMapping>();
+
+        foreach (var mapping in plugin.Configuration.UserAvatars.ToList())
+        {
+            if (!Guid.TryParse(mapping.UserId, out var userId))
+            {
+                toRemove.Add(mapping);
+                continue;
+            }
+
+            var user = _userManager.GetUserById(userId);
+            if (user is null)
+            {
+                toRemove.Add(mapping);
+                continue;
+            }
+
+            var profileExists = user.ProfileImage?.Path is { Length: > 0 } path && File.Exists(path);
+            if (profileExists)
+            {
+                continue;
+            }
+
+            if (ResolveSourcePath(mapping.Kind, mapping.AvatarId) is null)
+            {
+                toRemove.Add(mapping);
+                if (user.ProfileImage is not null)
+                {
+                    user.ProfileImage = null;
+                    await _userManager.UpdateUserAsync(user).ConfigureAwait(false);
+                }
+
+                continue;
+            }
+
+            try
+            {
+                await SetAsync(userId, mapping.Kind, mapping.AvatarId).ConfigureAwait(false);
+                repaired++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not repair avatar for user {User}", user.Username);
+            }
+        }
+
+        foreach (var mapping in toRemove)
+        {
+            plugin.Configuration.UserAvatars.Remove(mapping);
+        }
+
+        if (toRemove.Count > 0)
+        {
+            plugin.SaveConfiguration();
+        }
+
+        return repaired;
+    }
+
+    /// <summary>
+    /// Removes <c>profile_*</c> files inside each user's data directory that are not
+    /// the current <c>ProfileImage.Path</c>.
+    /// </summary>
+    /// <returns>The number of orphan files deleted.</returns>
+    public int CleanOrphans()
+    {
+        var deleted = 0;
+        foreach (var user in _userManager.Users)
+        {
+            var userDataPath = Path.Combine(_appPaths.DataPath, "users", user.Id.ToString("N"));
+            if (!Directory.Exists(userDataPath))
+            {
+                continue;
+            }
+
+            var current = user.ProfileImage?.Path;
+            foreach (var file in Directory.GetFiles(userDataPath, "profile_*"))
+            {
+                if (string.Equals(file, current, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    File.Delete(file);
+                    deleted++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Could not delete orphan {File}", file);
+                }
+            }
+        }
+
+        return deleted;
+    }
+
+    private static bool MatchesUser(UserAvatarMapping mapping, Guid userId)
+    {
+        return string.Equals(mapping.UserId, userId.ToString("N"), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(mapping.UserId, userId.ToString(), StringComparison.OrdinalIgnoreCase);
     }
 
     private string? ResolveSourcePath(AvatarKind kind, string avatarId)
@@ -196,9 +313,7 @@ public class UserAvatarService
         var plugin = Plugin.Instance ?? throw new InvalidOperationException("Plugin not initialized");
         var key = userId.ToString("N");
 
-        var mapping = plugin.Configuration.UserAvatars.FirstOrDefault(m =>
-            string.Equals(m.UserId, key, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(m.UserId, userId.ToString(), StringComparison.OrdinalIgnoreCase));
+        var mapping = plugin.Configuration.UserAvatars.FirstOrDefault(m => MatchesUser(m, userId));
 
         if (mapping is null)
         {

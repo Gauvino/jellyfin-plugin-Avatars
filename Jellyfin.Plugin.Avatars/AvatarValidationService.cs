@@ -8,22 +8,21 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.Avatars
 {
     /// <summary>
-    /// Hosted service that validates user avatars at startup.
-    /// This ensures that profile images are repaired if they were deleted or lost.
+    /// Hosted service that re-applies missing user avatars and prunes orphan profile images at startup.
     /// </summary>
     public class AvatarValidationService : IHostedService
     {
-        private readonly AvatarService _avatarService;
+        private readonly UserAvatarService _userAvatars;
         private readonly ILogger<AvatarValidationService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvatarValidationService"/> class.
         /// </summary>
-        /// <param name="avatarService">The avatar service.</param>
-        /// <param name="logger">The logger instance.</param>
-        public AvatarValidationService(AvatarService avatarService, ILogger<AvatarValidationService> logger)
+        /// <param name="userAvatars">The per-user avatar service.</param>
+        /// <param name="logger">The logger.</param>
+        public AvatarValidationService(UserAvatarService userAvatars, ILogger<AvatarValidationService> logger)
         {
-            _avatarService = avatarService;
+            _userAvatars = userAvatars;
             _logger = logger;
         }
 
@@ -34,23 +33,17 @@ namespace Jellyfin.Plugin.Avatars
             {
                 _logger.LogInformation("Avatars validation service starting...");
 
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                // Tiny grace period so the rest of Jellyfin's services are wired up
+                // before we touch user records.
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
 
-                var repairedCount = await _avatarService.ValidateUserAvatarsAsync().ConfigureAwait(false);
+                var repaired = await _userAvatars.ValidateAsync().ConfigureAwait(false);
+                _logger.LogInformation("Avatar validation completed. Repaired {Count} mapping(s).", repaired);
 
-                if (repairedCount > 0)
+                var deleted = _userAvatars.CleanOrphans();
+                if (deleted > 0)
                 {
-                    _logger.LogInformation("Avatar validation completed. Repaired {Count} missing avatar(s).", repairedCount);
-                }
-                else
-                {
-                    _logger.LogInformation("Avatar validation completed. All avatars are valid.");
-                }
-
-                var deletedCount = _avatarService.CleanOrphanedProfileImages();
-                if (deletedCount > 0)
-                {
-                    _logger.LogInformation("Cleaned up {Count} orphaned profile image(s).", deletedCount);
+                    _logger.LogInformation("Cleaned up {Count} orphaned profile image(s).", deleted);
                 }
             }
             catch (Exception ex)
