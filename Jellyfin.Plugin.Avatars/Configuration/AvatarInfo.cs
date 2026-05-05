@@ -1,6 +1,6 @@
 using System;
 
-namespace Jellyfin.Plugin.GetAvatar.Configuration
+namespace Jellyfin.Plugin.Avatars.Configuration
 {
     /// <summary>
     /// Represents information about an avatar.

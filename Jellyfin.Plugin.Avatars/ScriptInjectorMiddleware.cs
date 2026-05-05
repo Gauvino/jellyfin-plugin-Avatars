@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.GetAvatar;
+namespace Jellyfin.Plugin.Avatars;
 
 /// <summary>
-/// Middleware that intercepts index.html responses and injects the GetAvatar client script.
+/// Middleware that intercepts index.html responses and injects the Avatars client script.
 /// </summary>
 public class ScriptInjectorMiddleware
 {
-    private const string ScriptTag = @"<script src=""/GetAvatar/ClientScript""></script>";
+    private const string ScriptTag = @"<script src=""/Avatars/ClientScript""></script>";
 
     private readonly RequestDelegate _next;
     private readonly ILogger<ScriptInjectorMiddleware> _logger;
@@ -48,7 +48,7 @@ public class ScriptInjectorMiddleware
         // Force Jellyfin to ignore the browser's cache for index.html
         // by pretending it's a fresh request every time.
         // Otherwise, StaticFileMiddleware returns a 304 Not Modified empty body,
-        // and we fail to inject the GetAvatar script.
+        // and we fail to inject the Avatars script.
         context.Request.Headers.Remove("If-None-Match");
         context.Request.Headers.Remove("If-Modified-Since");
 
@@ -91,7 +91,7 @@ public class ScriptInjectorMiddleware
             if (bodyCloseIndex != -1)
             {
                 body = body.Insert(bodyCloseIndex, ScriptTag + "\n");
-                _logger.LogDebug("GetAvatar script injected into index.html response");
+                _logger.LogDebug("Avatars script injected into index.html response");
             }
         }
 

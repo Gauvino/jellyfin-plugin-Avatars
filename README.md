@@ -1,53 +1,52 @@
-# Jellyfin Plugin GetAvatar
+# Jellyfin Plugin — Avatars
 
-Jellyfin plugin that allows users to choose an avatar from a collection of images.
+Pick an avatar from a built-in categorized gallery, upload your own, or import collections from external URLs. A modern fork of [cedev-1/jellyfin-plugin-GetAvatar](https://github.com/cedev-1/jellyfin-plugin-GetAvatar) extended with the [kalibrado/jf-avatars](https://github.com/kalibrado/jf-avatars) catalog and a category UX.
 
 ![banner](./assets/banner.png)
 
-# About
+## Features
 
-This plugin allows users to choose an avatar from a collection of images. The plugin is installed in the Jellyfin server and provides a button in the user profile to select an avatar.
-
-> [!NOTE]
-> v1.5.2.0 stable version (test on jellyfin version 10.11.6)
+- **Built-in catalog** — embedded in the plugin DLL, ~300 avatars across multiple categories (animals, anime, gaming, nature, abstract, etc.). No internet required at runtime.
+- **Upload custom avatars** — admins can add their own from the dashboard.
+- **Import external collections** — admins can pull in additional avatars from a ZIP URL, a GitHub repo (`owner/name#branch:path`), or a manifest JSON. Auto-sync optional.
+- **Per-user picker** with category tabs, search, and grid view. Selection persists across sessions.
+- **Migration from GetAvatar** — if you previously used `cedev-1/jellyfin-plugin-GetAvatar`, your uploaded avatars and user mappings are migrated automatically on first start.
 
 ## Installation
 
-1. You have to open the dashboard of your Jellyfin server. Go to Catalog, click on ⚙️ button.
-2. Click to + to add the URL.
+1. Open your Jellyfin Dashboard -> **Plugins** -> **Catalog** -> Settings
+2. Add this manifest URL:
+
+   ```
+   https://gauvino.github.io/jellyfin-plugin-Avatars/manifest.json
+   ```
+
+3. Install **Avatars** from the catalog. Restart Jellyfin.
+
+## Configuration
+
+### Admin (Dashboard -> Plugins -> Avatars)
+
+- **Catalog tab** — enable/disable individual categories or specific built-in avatars.
+- **Uploads tab** — drop PNG/JPG/WebP files to add to the pool.
+- **Collections tab** — add external collections by URL with attribution.
+
+### User (User Settings -> Avatar)
+
+- Browse categories, search, click an avatar to apply.
+- "Remove avatar" button restores the default.
+
+## Built-in catalog credit
+
+The default avatar collection ships from [kalibrado/jf-avatars-images](https://github.com/kalibrado/jf-avatars-images) — see [`ATTRIBUTIONS.md`](./ATTRIBUTIONS.md) for full credit. Image rights belong to their original creators.
+
+## Development
 
 ```bash
-https://raw.githubusercontent.com/cedev-1/Jellyfin-Plugin-GetAvatar/master/manifest.json
+dotnet build Jellyfin.Plugin.Avatars/Jellyfin.Plugin.Avatars.csproj -c Release
+# Output: Jellyfin.Plugin.Avatars/bin/Release/net9.0/Jellyfin.Plugin.Avatars.dll
 ```
-
-3. On the Catalog page click on Install.
-
-## Plugin Configuration
-
-You just have to add avatar images, click on "Choose file" and "Upload". The image will be added to the collection of images. You can also remove images by clicking on the cross icon.
-
-![Plugin Config](./assets/settings.png)
-
-## User View
-
-User profile page will have a new button "Choose from Gallery".
-
-![User View](./assets/user_view.png)
-
-![User View](./assets/avatar_add.png)
-
-## Disclaimer
-
-It may have some bugs. If you find any bug, please open an [issue](https://github.com/cedev-1/jellyfin-plugin-GetAvatar/issues).
-
-# Troubleshooting
-
-It is possible that on already active sessions the button is not displayed on the profile. You can clear your browser cache.
-
-possible that we need to restart after making the v1.5.3.0 update.
-
-Currently, an admin cannot use the plugin to change another user's avatar. (issue [https://github.com/cedev-1/jellyfin-plugin-GetAvatar/issues/1]) A fix should be available soon.
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE) — preserves the original cedev-1/GetAvatar license.

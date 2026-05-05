@@ -1,93 +1,12 @@
 [
   {
     "category": "User Management",
-    "guid": "88accc81-d913-44b3-b1d3-2abfa457dd2d",
-    "name": "GetAvatar",
-    "owner": "cedev-1",
-    "overview": "Allows users to choose avatars from a curated collection.",
-    "description": "A Jellyfin plugin that allows users to choose an avatar from a collection of images.",
-    "imageUrl": "https://raw.githubusercontent.com/cedev-1/jellyfin-plugin-GetAvatar/main/assets/banner.png",
-    "versions": [
-      {
-        "checksum": "b5dd4d80d826d9511e0f467e9679e375",
-        "version": "1.5.3.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.5.3.0/Jellyfin.Plugin.GetAvatar-v1.5.3.0.zip",
-        "timestamp": "2026-04-21T18:31:55Z",
-        "changelog": "- New release v1.5.3.0"
-      },
-      {
-        "checksum": "490181ded526520e670190ba43ce9825",
-        "version": "1.5.2.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.5.2.0/Jellyfin.Plugin.GetAvatar-v1.5.2.0.zip",
-        "timestamp": "2026-02-25T19:30:16Z",
-        "changelog": "- New release v1.5.2.0"
-      },
-      {
-        "checksum": "314a06968dd91b2ffb8bbb5878443007",
-        "version": "1.5.1",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.5.1/Jellyfin.Plugin.GetAvatar-v1.5.1.zip",
-        "timestamp": "2026-02-25T14:25:20Z",
-        "changelog": "- New release v1.5.1"
-      },
-      {
-        "checksum": "27542931901eb9aee3476e3ec64febed",
-        "version": "1.5.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.5.0/Jellyfin.Plugin.GetAvatar-v1.5.0.zip",
-        "timestamp": "2026-02-19T15:19:46Z",
-        "changelog": "- New release v1.5.0"
-      },
-      {
-        "checksum": "41ebb362fbed738fbd0933aed5c7b97b",
-        "version": "1.4.1",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.4.1/Jellyfin.Plugin.GetAvatar-v1.4.1.zip",
-        "timestamp": "2026-02-12T19:50:08Z",
-        "changelog": "- New release v1.4.1"
-      },
-      {
-        "checksum": "e67568633e9f7c4b8fa5c13c93b56b98",
-        "version": "1.4.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.4.0/Jellyfin.Plugin.GetAvatar-v1.4.0.zip",
-        "timestamp": "2026-01-27T16:27:31Z",
-        "changelog": "- New release v1.4.0"
-      },
-      {
-        "checksum": "717a46fb8e916be435df9ba9fe256ba0",
-        "version": "1.3.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.3.0/Jellyfin.Plugin.GetAvatar-v1.3.0.zip",
-        "timestamp": "2026-01-27T10:11:36Z",
-        "changelog": "- New release v1.3.0"
-      },
-      {
-        "checksum": "48f088e92fadf96527927683721d2f56",
-        "version": "1.2.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.2.0/Jellyfin.Plugin.GetAvatar-v1.2.0.zip",
-        "timestamp": "2026-01-27T09:38:12Z",
-        "changelog": "- New release v1.2.0"
-      },
-      {
-        "checksum": "e20edb15500a83ae93972d38a379fad5",
-        "version": "1.1.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.1.0/Jellyfin.Plugin.GetAvatar-v1.1.0.zip",
-        "timestamp": "2026-01-27T08:38:38Z",
-        "changelog": "- New release v1.1.0"
-      },
-      {
-        "checksum": "0e4d52217596643ff4b34b1ce040dfc7",
-        "version": "1.0.0",
-        "targetAbi": "10.11.5",
-        "sourceUrl": "https://github.com/cedev-1/jellyfin-plugin-GetAvatar/releases/download/v1.0.0/Jellyfin.Plugin.GetAvatar-v1.0.0.zip",
-        "timestamp": "2026-01-26T23:01:29Z",
-        "changelog": "- New release v1.0.0"
-      }
-    ]
+    "guid": "c0a3f7d2-1b94-4e08-9a1f-7d2e8b6c4f10",
+    "name": "Avatars",
+    "owner": "Gauvino",
+    "overview": "Built-in categorized avatar gallery + user uploads + admin-importable collections.",
+    "description": "Jellyfin plugin that lets users pick an avatar from a built-in categorized gallery, lets admins upload custom avatars, and supports importing additional collections from external URLs (ZIP, GitHub repos, manifest JSON). Fork of cedev-1/jellyfin-plugin-GetAvatar with the kalibrado/jf-avatars catalog embedded.",
+    "imageUrl": "https://raw.githubusercontent.com/Gauvino/jellyfin-plugin-Avatars/main/assets/banner.png",
+    "versions": []
   }
 ]

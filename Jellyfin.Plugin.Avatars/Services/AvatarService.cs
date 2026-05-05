@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Jellyfin.Database.Implementations.Entities;
-using Jellyfin.Plugin.GetAvatar.Configuration;
+using Jellyfin.Plugin.Avatars.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.GetAvatar.Services
+namespace Jellyfin.Plugin.Avatars.Services
 {
     /// <summary>
     /// Service for managing user avatars.
@@ -49,7 +49,7 @@ namespace Jellyfin.Plugin.GetAvatar.Services
             // This path is automatically adapted to the environment (Docker, Windows, Linux, etc.)
             var pluginDataPath = Path.Combine(
                 _appPaths.PluginConfigurationsPath,
-                "GetAvatar",
+                "Avatars",
                 "avatars");
 
             _avatarDirectory = pluginDataPath;
@@ -225,7 +225,7 @@ namespace Jellyfin.Plugin.GetAvatar.Services
         /// </summary>
         /// <param name="avatarId">The avatar ID.</param>
         /// <returns>The file path, or null if not found.</returns>
-        public string? GetAvatarPath(string avatarId)
+        public string? AvatarsPath(string avatarId)
         {
             if (Plugin.Instance == null)
             {
@@ -263,7 +263,7 @@ namespace Jellyfin.Plugin.GetAvatar.Services
 
             _logger.LogInformation("Found user: {UserName}", user.Username);
 
-            var avatarPath = GetAvatarPath(avatarId);
+            var avatarPath = AvatarsPath(avatarId);
             if (avatarPath == null)
             {
                 _logger.LogError("Avatar not found: {AvatarId}", avatarId);
@@ -527,7 +527,7 @@ namespace Jellyfin.Plugin.GetAvatar.Services
                         user.Username,
                         user.ProfileImage?.Path ?? "null");
 
-                    var avatarPath = GetAvatarPath(mapping.AvatarId);
+                    var avatarPath = AvatarsPath(mapping.AvatarId);
                     if (avatarPath == null)
                     {
                         _logger.LogError(

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Reflection;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.GetAvatar.Services;
+using Jellyfin.Plugin.Avatars.Services;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.GetAvatar.Controllers
+namespace Jellyfin.Plugin.Avatars.Controllers
 {
     /// <summary>
     /// API controller for managing avatars.
     /// </summary>
     [ApiController]
-    [Route("GetAvatar")]
+    [Route("Avatars")]
     [Authorize]
     public class AvatarController : ControllerBase
     {
@@ -52,7 +52,7 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
         public IActionResult GetClientScript()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "Jellyfin.Plugin.GetAvatar.Configuration.Web.clientScript.js";
+            var resourceName = "Jellyfin.Plugin.Avatars.Configuration.Web.clientScript.js";
 
             var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null)
@@ -69,11 +69,11 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
         /// </summary>
         /// <returns>List of available avatars.</returns>
         [HttpGet("Avatars")]
-        public ActionResult<IEnumerable<object>> GetAvatars()
+        public ActionResult<IEnumerable<object>> Avatarss()
         {
             try
             {
-                _logger.LogInformation("GetAvatars endpoint called");
+                _logger.LogInformation("Avatarss endpoint called");
                 var avatars = _avatarService.GetAvailableAvatars();
                 _logger.LogInformation("Retrieved {Count} avatars", avatars.Count);
                 return Ok(avatars.Select(a => new
@@ -82,7 +82,7 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
                     a.Name,
                     a.FileName,
                     a.DateAdded,
-                    Url = $"/GetAvatar/Image/{a.Id}"
+                    Url = $"/Avatars/Image/{a.Id}"
                 }));
             }
             catch (Exception ex)
@@ -99,11 +99,11 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
         /// <returns>The avatar image.</returns>
         [HttpGet("Image/{avatarId}")]
         [AllowAnonymous]
-        public IActionResult GetAvatarImage(string avatarId)
+        public IActionResult AvatarsImage(string avatarId)
         {
             try
             {
-                var avatarPath = _avatarService.GetAvatarPath(avatarId);
+                var avatarPath = _avatarService.AvatarsPath(avatarId);
                 if (avatarPath == null || !System.IO.File.Exists(avatarPath))
                 {
                     return NotFound();
@@ -171,7 +171,7 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
                     avatarInfo.Name,
                     avatarInfo.FileName,
                     avatarInfo.DateAdded,
-                    Url = $"/GetAvatar/Image/{avatarInfo.Id}"
+                    Url = $"/Avatars/Image/{avatarInfo.Id}"
                 });
             }
             catch (Exception ex)
@@ -229,7 +229,7 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
                     return NotFound(new { message = "No custom avatar set for this user" });
                 }
 
-                var avatarPath = _avatarService.GetAvatarPath(avatarId);
+                var avatarPath = _avatarService.AvatarsPath(avatarId);
                 if (avatarPath == null || !System.IO.File.Exists(avatarPath))
                 {
                     return NotFound(new { message = "Avatar file not found" });
@@ -434,7 +434,7 @@ namespace Jellyfin.Plugin.GetAvatar.Controllers
         /// <returns>Status information for all users with avatars.</returns>
         [HttpGet("AvatarStatus")]
         [Authorize(Policy = "RequiresElevation")]
-        public IActionResult GetAvatarStatus()
+        public IActionResult AvatarsStatus()
         {
             try
             {

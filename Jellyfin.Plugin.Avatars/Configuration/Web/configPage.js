@@ -1,4 +1,4 @@
-const GetAvatarConfig = {
+const AvatarsConfig = {
   pluginUniqueId: "88accc81-d913-44b3-b1d3-2abfa457dd2d",
 };
 
@@ -86,7 +86,7 @@ const getAvatarCss = `
 `;
 
 export default function (view) {
-  const styleId = 'GetAvatarPluginStyles';
+  const styleId = 'AvatarsPluginStyles';
   if (!document.getElementById(styleId)) {
     const style = document.createElement('style');
     style.id = styleId;
@@ -109,7 +109,7 @@ export default function (view) {
     avatarCountEl.textContent = "";
 
     ApiClient.fetch({
-      url: ApiClient.getUrl("/GetAvatar/Avatars"),
+      url: ApiClient.getUrl("/Avatars/Avatars"),
       type: "GET",
       dataType: "json",
     })
@@ -180,7 +180,7 @@ export default function (view) {
     Dashboard.showLoadingMsg();
 
     ApiClient.fetch({
-      url: ApiClient.getUrl("/GetAvatar/Delete/" + avatarId),
+      url: ApiClient.getUrl("/Avatars/Delete/" + avatarId),
       type: "DELETE",
       dataType: "json",
     })
@@ -219,7 +219,7 @@ export default function (view) {
       formData.append("file", file);
 
       try {
-        const response = await fetch(ApiClient.getUrl("/GetAvatar/Upload"), {
+        const response = await fetch(ApiClient.getUrl("/Avatars/Upload"), {
           method: "POST",
           headers: { "X-Emby-Token": ApiClient.accessToken() },
           body: formData,

@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.GetAvatar.Configuration
+namespace Jellyfin.Plugin.Avatars.Configuration
 {
     /// <summary>
     /// Represents a user's avatar selection.

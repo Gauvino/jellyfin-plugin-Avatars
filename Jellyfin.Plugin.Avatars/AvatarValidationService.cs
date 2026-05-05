@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.GetAvatar.Services;
+using Jellyfin.Plugin.Avatars.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.GetAvatar
+namespace Jellyfin.Plugin.Avatars
 {
     /// <summary>
     /// Hosted service that validates user avatars at startup.
@@ -32,7 +32,7 @@ namespace Jellyfin.Plugin.GetAvatar
         {
             try
             {
-                _logger.LogInformation("GetAvatar validation service starting...");
+                _logger.LogInformation("Avatars validation service starting...");
 
                 await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
@@ -62,7 +62,7 @@ namespace Jellyfin.Plugin.GetAvatar
         /// <inheritdoc />
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("GetAvatar validation service stopping...");
+            _logger.LogInformation("Avatars validation service stopping...");
             return Task.CompletedTask;
         }
     }

@@ -110,7 +110,7 @@
         let selectedAvatarId = null;
 
         function loadAvatars() {
-            fetch(ApiClient.getUrl('/GetAvatar/Avatars'), {
+            fetch(ApiClient.getUrl('/Avatars/Avatars'), {
                 headers: { 'X-Emby-Token': ApiClient.accessToken() }
             })
             .then(response => response.json())
@@ -181,7 +181,7 @@
 
             Dashboard.showLoadingMsg();
 
-            fetch(ApiClient.getUrl('/GetAvatar/SetAvatar'), {
+            fetch(ApiClient.getUrl('/Avatars/SetAvatar'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

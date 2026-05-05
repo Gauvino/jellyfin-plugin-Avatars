@@ -26,23 +26,23 @@ jobs:
 
       - name: Update csproj Version
         run: |
-          sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>${{ env.VERSION }}<\/AssemblyVersion>/" Jellyfin.Plugin.GetAvatar/Jellyfin.Plugin.GetAvatar.csproj
-          sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>${{ env.VERSION }}<\/FileVersion>/" Jellyfin.Plugin.GetAvatar/Jellyfin.Plugin.GetAvatar.csproj
+          sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>${{ env.VERSION }}<\/AssemblyVersion>/" Jellyfin.Plugin.Avatars/Jellyfin.Plugin.Avatars.csproj
+          sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>${{ env.VERSION }}<\/FileVersion>/" Jellyfin.Plugin.Avatars/Jellyfin.Plugin.Avatars.csproj
 
       - name: Build
-        run: dotnet build Jellyfin.Plugin.GetAvatar/Jellyfin.Plugin.GetAvatar.csproj --configuration Release
+        run: dotnet build Jellyfin.Plugin.Avatars/Jellyfin.Plugin.Avatars.csproj --configuration Release
 
       - name: Zip Artifact
         run: |
-          cd Jellyfin.Plugin.GetAvatar/bin/Release/net9.0
+          cd Jellyfin.Plugin.Avatars/bin/Release/net9.0
           cp ../../../../assets/banner.png .
-          zip -r Jellyfin.Plugin.GetAvatar-v${{ env.VERSION }}.zip Jellyfin.Plugin.GetAvatar.dll banner.png
-          mv Jellyfin.Plugin.GetAvatar-v${{ env.VERSION }}.zip ../../../../
+          zip -r Jellyfin.Plugin.Avatars-v${{ env.VERSION }}.zip Jellyfin.Plugin.Avatars.dll banner.png
+          mv Jellyfin.Plugin.Avatars-v${{ env.VERSION }}.zip ../../../../
 
       - name: Calculate MD5
         id: calc_md5
         run: |
-          MD5=$(md5sum Jellyfin.Plugin.GetAvatar-v${{ env.VERSION }}.zip | awk '{print $1}')
+          MD5=$(md5sum Jellyfin.Plugin.Avatars-v${{ env.VERSION }}.zip | awk '{print $1}')
           echo "MD5=$MD5" >> $GITHUB_ENV
 
       - name: Update manifest.json
@@ -53,7 +53,7 @@ jobs:
             "checksum": "${{ env.MD5 }}",
             "version": "${{ env.VERSION }}",
             "targetAbi": "10.11.5",
-            "sourceUrl": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/Jellyfin.Plugin.GetAvatar-v${{ env.VERSION }}.zip",
+            "sourceUrl": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/Jellyfin.Plugin.Avatars-v${{ env.VERSION }}.zip",
             "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
             "changelog": "- New release v${{ env.VERSION }}"
           }
@@ -77,7 +77,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: Jellyfin.Plugin.GetAvatar-v${{ env.VERSION }}.zip
+          files: Jellyfin.Plugin.Avatars-v${{ env.VERSION }}.zip
           name: v${{ env.VERSION }}
           draft: false
           prerelease: false

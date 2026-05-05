@@ -2,7 +2,7 @@
     'use strict';
 
     const CONFIG = {
-        apiBaseUrl: '/GetAvatar',
+        apiBaseUrl: '/Avatars',
         modalId: 'getAvatarModal'
     };
 
@@ -93,10 +93,10 @@
             }
 
             avatars = await response.json();
-            console.log('GetAvatar: Loaded avatars', avatars);
+            console.log('Avatars: Loaded avatars', avatars);
             renderAvatars(avatars);
         } catch (error) {
-            console.error('GetAvatar: Failed to load avatars', error);
+            console.error('Avatars: Failed to load avatars', error);
             container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#e66;">Failed to load avatars</p>';
         }
     }
@@ -176,7 +176,7 @@
                 location.href = url.toString();
             }, 800);
         } catch (error) {
-            console.error('GetAvatar: Failed to set avatar', error);
+            console.error('Avatars: Failed to set avatar', error);
             Dashboard.alert({ message: 'Failed to set avatar', title: 'Error' });
             btn.disabled = false;
             btn.textContent = 'Set as My Avatar';
@@ -185,7 +185,7 @@
 
     function injectButton() {
          if (!location.hash.includes('userprofile')) return;
-         if (document.getElementById('btnChooseGetAvatar')) return;
+         if (document.getElementById('btnChooseAvatars')) return;
 
          const hashParams = new URLSearchParams(location.hash.split('?')[1]);
          targetUserId = hashParams.get('userId') || null;
@@ -206,7 +206,7 @@
          if (!target) return;
 
          const btn = document.createElement('button');
-         btn.id = 'btnChooseGetAvatar';
+         btn.id = 'btnChooseAvatars';
          btn.setAttribute('is', 'emby-button');
          btn.className = 'raised button-alt block';
          btn.style.marginTop = '1em';
@@ -226,11 +226,11 @@
              target.appendChild(btn);
          }
 
-        // console.log('GetAvatar: Button injected', targetUserId ? `for user ${targetUserId}` : 'for current user'); - DEBUG
+        // console.log('Avatars: Button injected', targetUserId ? `for user ${targetUserId}` : 'for current user'); - DEBUG
      }
 
     function init() {
-        console.log('GetAvatar: Initializing...');
+        console.log('Avatars: Initializing...');
         createModal();
 
         const checkPage = () => {

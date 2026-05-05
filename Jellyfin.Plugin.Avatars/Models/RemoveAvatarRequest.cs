@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.GetAvatar.Controllers
+namespace Jellyfin.Plugin.Avatars.Controllers
 {
     /// <summary>
     /// Request model for removing a user's avatar.

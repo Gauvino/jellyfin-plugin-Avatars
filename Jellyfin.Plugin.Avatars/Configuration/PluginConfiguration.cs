@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using MediaBrowser.Model.Plugins;
 
-namespace Jellyfin.Plugin.GetAvatar.Configuration
+namespace Jellyfin.Plugin.Avatars.Configuration
 {
     /// <summary>
-    /// Represents the configuration settings for the GetAvatar plugin.
+    /// Represents the configuration settings for the Avatars plugin.
     /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {

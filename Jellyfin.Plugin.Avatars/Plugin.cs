@@ -1,14 +1,14 @@
-using Jellyfin.Plugin.GetAvatar.Configuration;
+using Jellyfin.Plugin.Avatars.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.GetAvatar
+namespace Jellyfin.Plugin.Avatars
 {
     /// <summary>
-    /// Main plugin class for GetAvatar that handles configuration and web pages.
+    /// Main plugin class for Avatars that handles configuration and web pages.
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
@@ -26,7 +26,7 @@ namespace Jellyfin.Plugin.GetAvatar
             _logger = logger;
             Instance = this;
 
-            _logger.LogInformation("GetAvatar Plugin initialized");
+            _logger.LogInformation("Avatars Plugin initialized");
         }
 
         /// <summary>
@@ -40,10 +40,10 @@ namespace Jellyfin.Plugin.GetAvatar
         public static PluginConfiguration Config => Instance!.Configuration;
 
         /// <inheritdoc />
-        public override string Name => "GetAvatar";
+        public override string Name => "Avatars";
 
         /// <inheritdoc />
-        public override Guid Id => Guid.Parse("88accc81-d913-44b3-b1d3-2abfa457dd2d");
+        public override Guid Id => Guid.Parse("c0a3f7d2-1b94-4e08-9a1f-7d2e8b6c4f10");
 
         /// <summary>
         /// Gets the plugin instance.
@@ -53,7 +53,7 @@ namespace Jellyfin.Plugin.GetAvatar
         /// <inheritdoc />
         public IEnumerable<PluginPageInfo> GetPages()
         {
-            // Admin configuration page (Dashboard → Plugins → GetAvatar)
+            // Admin configuration page (Dashboard → Plugins → Avatars)
             yield return new PluginPageInfo
             {
                 Name = this.Name,
@@ -61,14 +61,14 @@ namespace Jellyfin.Plugin.GetAvatar
             };
             yield return new PluginPageInfo
             {
-                Name = "GetAvatarConfig",
+                Name = "AvatarsConfig",
                 EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.Web.configPage.js"
             };
 
             // User avatar selection page (User Settings → Avatar)
             yield return new PluginPageInfo
             {
-                Name = "GetAvatarUserPage",
+                Name = "AvatarsUserPage",
                 EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.Web.userAvatarPage.html",
                 DisplayName = "Avatar",
                 MenuSection = "user",
