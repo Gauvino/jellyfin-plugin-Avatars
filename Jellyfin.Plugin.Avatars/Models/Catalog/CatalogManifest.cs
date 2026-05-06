@@ -14,9 +14,9 @@ public class CatalogManifest
     /// <summary>Gets or sets the upstream source description.</summary>
     public string Source { get; set; } = string.Empty;
 
-    /// <summary>Gets the list of categories in display order.</summary>
-    public List<CatalogCategory> Categories { get; } = new();
+    /// <summary>Gets or sets the list of categories in display order.</summary>
+    public List<CatalogCategory> Categories { get; set; } = new();
 
-    /// <summary>Gets the flat list of avatars (each carries its own <c>CategoryId</c>).</summary>
-    public List<CatalogAvatar> Avatars { get; } = new();
+    /// <summary>Gets or sets the flat list of avatars (each carries its own <c>CategoryId</c>).</summary>
+    public List<CatalogAvatar> Avatars { get; set; } = new();
 }

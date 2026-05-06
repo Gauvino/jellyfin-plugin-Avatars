@@ -1,0 +1,59 @@
+name: Publish manifest to gh-pages
+
+on:
+  repository_dispatch:
+    types: [manifest-publish]
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: src
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+        continue-on-error: true
+
+      - name: Initialize gh-pages if missing
+        run: |
+          if [ ! -d pages/.git ]; then
+            mkdir -p pages
+            cd pages
+            git init -b gh-pages
+            git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          fi
+
+      - name: Copy manifest from main
+        run: cp src/manifest.json pages/manifest.json
+
+      - name: Add CNAME-style index for clarity
+        run: |
+          cat > pages/index.html <<'EOF'
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>Avatars plugin manifest</title></head>
+          <body>
+            <h1>Jellyfin Avatars plugin</h1>
+            <p>Manifest URL for Jellyfin plugin catalog:</p>
+            <pre><a href="manifest.json">manifest.json</a></pre>
+            <p>Repo: <a href="https://github.com/Gauvino/jellyfin-plugin-Avatars">github.com/Gauvino/jellyfin-plugin-Avatars</a></p>
+          </body></html>
+          EOF
+
+      - name: Commit + push
+        run: |
+          cd pages
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add manifest.json index.html
+          git commit -m "publish manifest for v${{ github.event.client_payload.version || 'manual' }}" || echo "no changes"
+          git push origin gh-pages

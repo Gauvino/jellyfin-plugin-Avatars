@@ -45,8 +45,8 @@ public class ImportedCollection
     /// <summary>Gets or sets the free-text licensing notice the admin captured at import time, surfaced in the admin UI for transparency.</summary>
     public string LicenseNotice { get; set; } = string.Empty;
 
-    /// <summary>Gets the IDs (matching <c>CatalogAvatar.Id</c>) of the avatars this collection contributed to the catalog.</summary>
-    public List<string> AvatarIds { get; } = new();
+    /// <summary>Gets or sets the IDs (matching <c>CatalogAvatar.Id</c>) of the avatars this collection contributed to the catalog.</summary>
+    public List<string> AvatarIds { get; set; } = new();
 
     /// <summary>Gets or sets the total disk size of the extracted collection in bytes.</summary>
     public long TotalSizeBytes { get; set; }
