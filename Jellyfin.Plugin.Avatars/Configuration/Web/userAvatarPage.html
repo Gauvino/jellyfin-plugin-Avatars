@@ -2,223 +2,246 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Avatar</title>
     <style>
-        .avatar-page-container {
-            max-width: 800px;
+        .avatars-page { max-width: 960px; padding: 1em; }
+        .avatars-toolbar { display: flex; gap: 0.75em; align-items: center; flex-wrap: wrap; margin-bottom: 1em; }
+        .avatars-toolbar input[type="search"] {
+            flex: 1 1 220px; min-height: 2.4em; padding: 0.4em 0.7em;
+            border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.25); color: inherit;
         }
-
-        .avatar-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1em;
-            margin-top: 1.5em;
+        .avatars-tabs { display: flex; gap: 0.4em; overflow-x: auto; padding-bottom: 0.5em; margin-bottom: 1em; }
+        .avatars-tab {
+            flex: 0 0 auto; padding: 0.5em 0.9em; border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18); background: transparent;
+            color: inherit; cursor: pointer; white-space: nowrap;
+            font-size: 0.92em; transition: background 0.15s, border-color 0.15s;
         }
-
-        @media (max-width: 600px) {
-            .avatar-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .avatars-tab:hover { background: rgba(255,255,255,0.06); }
+        .avatars-tab.is-active { background: #52B54B; border-color: #52B54B; color: #fff; }
+        .avatars-tab .count { opacity: 0.7; margin-left: 0.4em; font-size: 0.85em; }
+        .avatars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 0.7em; }
+        .avatar-card {
+            position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden;
+            border: 2px solid transparent; cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            transition: transform 0.12s, border-color 0.12s, filter 0.12s;
+            filter: grayscale(0.55) opacity(0.85);
         }
-
-        .avatar-option {
-            background: rgba(255, 255, 255, 0.05);
-            border: 3px solid transparent;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s;
+        .avatar-card:hover { transform: translateY(-2px); filter: none; }
+        .avatar-card.is-selected { border-color: #52B54B; filter: none; box-shadow: 0 0 0 2px rgba(82,181,75,0.3); }
+        .avatar-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .avatar-card .label {
+            position: absolute; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.75) 100%);
+            color: #fff; padding: 0.3em 0.5em 0.4em; font-size: 0.75em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-
-        .avatar-option:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(82, 181, 75, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .avatar-option.selected {
-            border-color: #52B54B;
-            background: rgba(82, 181, 75, 0.2);
-        }
-
-        .avatar-image-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 100%;
-        }
-
-        .avatar-option img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-name {
-            padding: 0.75em;
-            font-size: 0.85em;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            opacity: 0.8;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3em 1em;
-            opacity: 0.6;
-        }
-
-        .empty-state-icon {
-            font-size: 3em;
-            margin-bottom: 0.5em;
-        }
-
-        .button-container {
-            margin-top: 1.5em;
-            padding-top: 1.5em;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .avatars-status { padding: 1em 0; opacity: 0.7; }
+        .avatars-footer { display: flex; gap: 0.6em; margin-top: 1.2em; flex-wrap: wrap; }
     </style>
 </head>
 
 <body>
-    <div data-role="page" class="page type-interior userProfileSettingsPage" data-require="emby-button">
+    <div data-role="page" class="page type-interior pluginConfigurationPage" data-helpurl="" data-require="emby-input,emby-button,emby-select,emby-checkbox">
         <div data-role="content">
-            <div class="content-primary avatar-page-container">
-                <div class="verticalSection">
-                    <h2 class="sectionTitle">Choose Your Avatar</h2>
-                    <p style="opacity:0.7;">Select an avatar from the gallery below.</p>
+            <div class="content-primary avatars-page">
+                <h1 style="margin-bottom: 0.6em;">Choose your avatar</h1>
+                <p class="fieldDescription">Pick from the built-in gallery or your admin's uploads. Click an avatar to apply.</p>
+
+                <div class="avatars-toolbar">
+                    <input type="search" placeholder="Search…" data-avatars-search />
                 </div>
 
-                <div id="avatarContainer">
-                    <div class="empty-state">
-                        <p>Loading avatars...</p>
-                    </div>
+                <div class="avatars-tabs" data-avatars-tabs></div>
+                <div class="avatars-grid" data-avatars-grid></div>
+                <div class="avatars-status" data-avatars-status></div>
+
+                <div class="avatars-footer">
+                    <button is="emby-button" type="button" class="raised button-cancel" data-avatars-remove>
+                        <span>Remove avatar</span>
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script type="module">
-        const view = document.currentScript.ownerDocument;
-        const avatarContainer = view.querySelector('#avatarContainer');
-        let selectedAvatarId = null;
+        <script type="text/javascript">
+            (function () {
+                'use strict';
 
-        function loadAvatars() {
-            fetch(ApiClient.getUrl('/Avatars/Avatars'), {
-                headers: { 'X-Emby-Token': ApiClient.accessToken() }
-            })
-            .then(response => response.json())
-            .then(avatars => renderAvatars(avatars))
-            .catch(error => {
-                console.error('Failed to load avatars:', error);
-                avatarContainer.innerHTML = `
-                    <div class="empty-state">
-                        <p style="color:#e57373;">Failed to load avatars.</p>
-                    </div>
-                `;
-            });
-        }
+                var page = document.querySelector('.avatars-page');
+                if (!page) return;
 
-        function renderAvatars(avatars) {
-            if (!avatars || avatars.length === 0) {
-                avatarContainer.innerHTML = `
-                    <div class="empty-state">
-                        <p>No avatars available yet.</p>
-                        <p style="font-size:0.9em;">Contact your administrator to add avatars.</p>
-                    </div>
-                `;
-                return;
-            }
+                var searchInput = page.querySelector('[data-avatars-search]');
+                var tabsEl = page.querySelector('[data-avatars-tabs]');
+                var gridEl = page.querySelector('[data-avatars-grid]');
+                var statusEl = page.querySelector('[data-avatars-status]');
+                var removeBtn = page.querySelector('[data-avatars-remove]');
 
-            let html = '<div class="avatar-grid">';
+                var state = {
+                    categories: [],
+                    avatars: [],
+                    activeCategory: null,
+                    query: '',
+                    selectedKey: null,
+                    userId: null,
+                };
 
-            avatars.forEach(avatar => {
-                const id = avatar.Id || avatar.id;
-                const name = avatar.Name || avatar.name;
-                const url = avatar.Url || avatar.url;
-                html += `
-                    <div class="avatar-option" data-avatar-id="${id}">
-                        <div class="avatar-image-wrapper">
-                            <img src="${url}" alt="${name}" loading="lazy" />
-                        </div>
-                        <div class="avatar-name" title="${name}">${name}</div>
-                    </div>
-                `;
-            });
+                function avatarKey(a) { return a.kind + ':' + a.id; }
+                function setStatus(text) { statusEl.textContent = text || ''; }
 
-            html += '</div>';
-            html += `
-                <div class="button-container">
-                    <button id="setAvatarButton" is="emby-button" type="button" class="raised button-submit" disabled>
-                        <span>Set as My Avatar</span>
-                    </button>
-                </div>
-            `;
-
-            avatarContainer.innerHTML = html;
-
-            const options = avatarContainer.querySelectorAll('.avatar-option');
-            options.forEach(opt => {
-                opt.addEventListener('click', function() {
-                    options.forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedAvatarId = this.dataset.avatarId;
-                    view.querySelector('#setAvatarButton').disabled = false;
-                });
-            });
-
-            view.querySelector('#setAvatarButton').addEventListener('click', setAvatar);
-        }
-
-        function setAvatar() {
-            if (!selectedAvatarId) return;
-
-            Dashboard.showLoadingMsg();
-
-            fetch(ApiClient.getUrl('/Avatars/SetAvatar'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Emby-Token': ApiClient.accessToken()
-                },
-                body: JSON.stringify({ avatarId: selectedAvatarId })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed');
-                return response.json();
-            })
-            .then(() => {
-                Dashboard.hideLoadingMsg();
-                Dashboard.alert({ message: 'Avatar updated!', title: 'Success' });
-
-                const t = Date.now();
-                document.querySelectorAll('img').forEach(img => {
-                    if (img.src.includes('/Users/') && img.src.includes('/Images/')) {
-                        img.src = img.src.split('?')[0] + '?t=' + t;
+                function getCurrentUserId() {
+                    if (window.ApiClient && typeof ApiClient.getCurrentUserId === 'function') {
+                        return ApiClient.getCurrentUserId();
                     }
+                    return null;
+                }
+
+                function apiUrl(path) {
+                    if (window.ApiClient && typeof ApiClient.getUrl === 'function') {
+                        return ApiClient.getUrl(path);
+                    }
+                    return '/' + path.replace(/^\/+/, '');
+                }
+
+                function authFetch(path, options) {
+                    options = options || {};
+                    options.headers = Object.assign({}, options.headers || {});
+                    if (window.ApiClient && typeof ApiClient.accessToken === 'function') {
+                        options.headers['X-Emby-Token'] = ApiClient.accessToken();
+                    }
+                    return fetch(apiUrl(path), options);
+                }
+
+                function renderTabs() {
+                    tabsEl.innerHTML = '';
+                    state.categories.forEach(function (cat) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'avatars-tab' + (state.activeCategory === cat.id ? ' is-active' : '');
+                        btn.dataset.categoryId = cat.id;
+                        btn.innerHTML = '<span>' + escapeHtml(cat.displayName) + '</span><span class="count">' + cat.count + '</span>';
+                        btn.addEventListener('click', function () {
+                            state.activeCategory = cat.id;
+                            renderTabs();
+                            renderGrid();
+                        });
+                        tabsEl.appendChild(btn);
+                    });
+                }
+
+                function renderGrid() {
+                    var query = state.query.toLowerCase();
+                    var filtered = state.avatars.filter(function (a) {
+                        if (state.activeCategory && a.categoryId !== state.activeCategory) return false;
+                        if (!query) return true;
+                        return a.displayName.toLowerCase().indexOf(query) !== -1
+                            || a.id.toLowerCase().indexOf(query) !== -1;
+                    });
+
+                    gridEl.innerHTML = '';
+                    if (filtered.length === 0) {
+                        setStatus('No avatars match.');
+                        return;
+                    }
+                    setStatus(filtered.length + ' avatar' + (filtered.length > 1 ? 's' : ''));
+
+                    filtered.forEach(function (a) {
+                        var card = document.createElement('div');
+                        card.className = 'avatar-card' + (state.selectedKey === avatarKey(a) ? ' is-selected' : '');
+                        card.title = a.displayName;
+                        card.innerHTML =
+                            '<img loading="lazy" src="' + a.url + '" alt="' + escapeHtml(a.displayName) + '" />' +
+                            '<span class="label">' + escapeHtml(a.displayName) + '</span>';
+                        card.addEventListener('click', function () { applyAvatar(a); });
+                        gridEl.appendChild(card);
+                    });
+                }
+
+                function loadCatalog() {
+                    setStatus('Loading…');
+                    return Promise.all([
+                        authFetch('Avatars/Catalog/Categories').then(function (r) { return r.json(); }),
+                        authFetch('Avatars/Catalog/Avatars').then(function (r) { return r.json(); }),
+                    ]).then(function (results) {
+                        state.categories = results[0] || [];
+                        state.avatars = results[1] || [];
+                        if (state.categories.length > 0 && !state.activeCategory) {
+                            state.activeCategory = state.categories[0].id;
+                        }
+                        renderTabs();
+                        renderGrid();
+                    }).catch(function (err) {
+                        setStatus('Could not load avatars: ' + err.message);
+                    });
+                }
+
+                function loadCurrentSelection() {
+                    state.userId = getCurrentUserId();
+                    if (!state.userId) return Promise.resolve();
+                    return authFetch('Avatars/User/' + encodeURIComponent(state.userId))
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (mapping) {
+                            if (mapping && mapping.kind && mapping.avatarId) {
+                                state.selectedKey = mapping.kind + ':' + mapping.avatarId;
+                            }
+                        });
+                }
+
+                function applyAvatar(a) {
+                    if (!state.userId) return;
+                    setStatus('Applying ' + a.displayName + '…');
+                    var body = JSON.stringify({ kind: a.kind, avatarId: a.id, userId: state.userId });
+                    authFetch('Avatars/User/Set', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: body,
+                    }).then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        state.selectedKey = avatarKey(a);
+                        renderGrid();
+                        setStatus('Avatar applied. Refresh other tabs to see your new picture.');
+                    }).catch(function (err) {
+                        setStatus('Failed: ' + err.message);
+                    });
+                }
+
+                function removeAvatar() {
+                    if (!state.userId) return;
+                    setStatus('Removing avatar…');
+                    var body = JSON.stringify({ userId: state.userId });
+                    authFetch('Avatars/User/Remove', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: body,
+                    }).then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        state.selectedKey = null;
+                        renderGrid();
+                        setStatus('Avatar cleared.');
+                    }).catch(function (err) {
+                        setStatus('Failed: ' + err.message);
+                    });
+                }
+
+                function escapeHtml(s) {
+                    var div = document.createElement('div');
+                    div.textContent = s == null ? '' : String(s);
+                    return div.innerHTML;
+                }
+
+                searchInput.addEventListener('input', function () {
+                    state.query = searchInput.value || '';
+                    renderGrid();
                 });
+                removeBtn.addEventListener('click', removeAvatar);
 
-                setTimeout(() => {
-                    const url = new URL(location.href);
-                    url.searchParams.set('_refresh', t);
-                    location.href = url.toString();
-                }, 1000);
-            })
-            .catch(error => {
-                console.error('Failed to set avatar:', error);
-                Dashboard.hideLoadingMsg();
-                Dashboard.alert({ message: 'Failed to set avatar.', title: 'Error' });
-            });
-        }
-
-        loadAvatars();
-    </script>
+                Promise.all([loadCurrentSelection(), loadCatalog()]).catch(function () { /* status is already set */ });
+            })();
+        </script>
+    </div>
 </body>
 
 </html>

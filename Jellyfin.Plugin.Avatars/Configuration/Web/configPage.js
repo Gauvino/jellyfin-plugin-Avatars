@@ -1,352 +1,209 @@
-const AvatarsConfig = {
-  pluginUniqueId: "88accc81-d913-44b3-b1d3-2abfa457dd2d",
-};
+(function () {
+    'use strict';
 
-const getAvatarCss = `
-.avatar-list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1em;
-}
-.avatar-list-header h3 { margin: 0; font-size: 1em; }
-.avatar-count { font-size: 0.85em; opacity: 0.5; }
-.avatar-thumb {
-    width: 35px;
-    height: 35px;
-    border-radius: 4px;
-    object-fit: cover;
-}
-.delete-btn {
-    background: none;
-    border: none;
-    color: #999;
-    cursor: pointer;
-    padding: 0.3em 0.5em;
-    font-size: 1.1em;
-    border-radius: 4px;
-    opacity: 0.5;
-    transition: all 0.2s;
-}
-.delete-btn:hover {
-    color: #e53935;
-    background: rgba(229, 57, 53, 0.1);
-    opacity: 1;
-}
-.empty-state, .loading-state {
-    text-align: center;
-    padding: 2em;
-    opacity: 0.5;
-    font-size: 0.9em;
-}
-.avatar-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1em;
-}
-.avatar-card {
-    position: relative;
-    text-align: center;
-    width: auto;
-}
-.avatar-image-container {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto;
-    overflow: hidden;
-    border-radius: 4px;
-}
-.avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.delete-button {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #000;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    z-index: 10;
-    padding: 0;
-}
-.delete-button:hover {
-    background: #333;
-}
-`;
+    var PLUGIN_GUID = 'c0a3f7d2-1b94-4e08-9a1f-7d2e8b6c4f10';
 
-export default function (view) {
-  const styleId = 'AvatarsPluginStyles';
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = getAvatarCss;
-    document.head.appendChild(style);
-  }
+    var page = document.querySelector('.avatars-admin');
+    if (!page) return;
 
-  const avatarListContainer = view.querySelector("#avatarList");
-  const avatarCountEl = view.querySelector("#avatarCount");
-  const fileInput = view.querySelector("#avatarFileInput");
-  const uploadButton = view.querySelector("#uploadButton");
-  const selectedFileDiv = view.querySelector("#selectedFile");
-  const fileNameSpan = view.querySelector("#fileName");
+    var statsBuiltIn = page.querySelector('[data-stat-builtin]');
+    var statsUploaded = page.querySelector('[data-stat-uploaded]');
+    var statsCategories = page.querySelector('[data-stat-categories]');
+    var categoriesEl = page.querySelector('[data-avatars-categories]');
+    var uploadedEl = page.querySelector('[data-avatars-uploaded]');
+    var statusEl = page.querySelector('[data-avatars-status]');
+    var uploadZone = page.querySelector('[data-avatars-uploadzone]');
+    var fileInput = page.querySelector('[data-avatars-fileinput]');
 
-  let selectedFiles = [];
-
-  function loadAvatars() {
-    avatarListContainer.innerHTML =
-      '<div class="loading-state"><p>Loading avatars...</p></div>';
-    avatarCountEl.textContent = "";
-
-    ApiClient.fetch({
-      url: ApiClient.getUrl("/Avatars/Avatars"),
-      type: "GET",
-      dataType: "json",
-    })
-      .then(function (avatars) {
-        renderAvatars(avatars);
-      })
-      .catch(function (error) {
-        console.error("Failed to load avatars:", error);
-        avatarListContainer.innerHTML =
-          '<div class="empty-state"><p style="color:#e57373;">Failed to load avatars.</p></div>';
-      });
-  }
-
-  function renderAvatars(avatars) {
-    if (!avatars || avatars.length === 0) {
-      avatarCountEl.textContent = "0 avatars";
-      avatarListContainer.innerHTML = `
-                <div class="empty-state">
-                    <p>No avatars yet</p>
-                    <p style="font-size:0.9em;">Upload your first avatar to get started.</p>
-                </div>
-            `;
-      return;
+    function setStatus(text, isError) {
+        statusEl.style.color = isError ? '#ff8a8a' : '';
+        statusEl.textContent = text || '';
     }
 
-    avatarCountEl.textContent =
-      avatars.length + " avatar" + (avatars.length > 1 ? "s" : "");
+    function escapeHtml(s) {
+        var div = document.createElement('div');
+        div.textContent = s == null ? '' : String(s);
+        return div.innerHTML;
+    }
 
-    let html = '<div class="avatar-grid">';
+    function apiUrl(path) {
+        if (window.ApiClient && typeof ApiClient.getUrl === 'function') {
+            return ApiClient.getUrl(path);
+        }
+        return '/' + path.replace(/^\/+/, '');
+    }
 
-    avatars.forEach(function (avatar) {
-      const date = new Date(
-        avatar.DateAdded || avatar.dateAdded,
-      ).toLocaleDateString();
-      const id = avatar.Id || avatar.id;
-      const name = avatar.Name || avatar.name;
-      const url = avatar.Url || avatar.url;
+    function authFetch(path, options) {
+        options = options || {};
+        options.headers = Object.assign({}, options.headers || {});
+        if (window.ApiClient && typeof ApiClient.accessToken === 'function') {
+            options.headers['X-Emby-Token'] = ApiClient.accessToken();
+        }
+        return fetch(apiUrl(path), options);
+    }
 
-      html += `
-                <div class="avatar-card" data-avatar-id="${id}">
-                    <button class="delete-button" data-avatar-id="${id}" title="Delete">×</button>
-                    <div class="avatar-image-container">
-                        <img src="${url}" alt="${name}" class="avatar-image" loading="lazy" width="100" height="100" />
-                    </div>
-                </div>
-            `;
+    function loadConfig() {
+        if (!window.ApiClient || typeof ApiClient.getPluginConfiguration !== 'function') {
+            return Promise.reject(new Error('ApiClient unavailable'));
+        }
+        return ApiClient.getPluginConfiguration(PLUGIN_GUID);
+    }
+
+    function saveConfig(config) {
+        return ApiClient.updatePluginConfiguration(PLUGIN_GUID, config);
+    }
+
+    function renderCategories(config, categories) {
+        var disabledSet = {};
+        (config.DisabledBuiltInIds || []).forEach(function (id) { disabledSet[id] = true; });
+
+        // Build a per-category disabled flag: a category is "disabled" if all its avatars are disabled.
+        // Toggling the category checkbox flips all its avatar ids in DisabledBuiltInIds.
+        // We need the avatar ids per category, fetch the full Avatars list once.
+        return authFetch('Avatars/Catalog/Avatars').then(function (r) { return r.json(); }).then(function (allAvatars) {
+            var byCategory = {};
+            allAvatars.forEach(function (a) {
+                if (a.kind !== 'BuiltIn') return;
+                if (!byCategory[a.categoryId]) byCategory[a.categoryId] = [];
+                byCategory[a.categoryId].push(a.id);
+            });
+
+            categoriesEl.innerHTML = '';
+            categories.forEach(function (cat) {
+                if (cat.id === 'uploaded') return; // Uploads aren't toggleable here.
+                var ids = byCategory[cat.id] || [];
+                var visibleIds = ids.filter(function (id) { return !disabledSet[id]; });
+                var enabled = visibleIds.length > 0;
+
+                var row = document.createElement('div');
+                row.className = 'avatars-cat-card';
+                row.innerHTML =
+                    '<input type="checkbox" id="cat-' + escapeHtml(cat.id) + '"' + (enabled ? ' checked' : '') + ' />' +
+                    '<label for="cat-' + escapeHtml(cat.id) + '">' + escapeHtml(cat.displayName) + '</label>' +
+                    '<span class="count">' + ids.length + '</span>';
+                row.querySelector('input').addEventListener('change', function (e) {
+                    toggleCategory(cat.id, ids, e.target.checked);
+                });
+                categoriesEl.appendChild(row);
+            });
+        });
+    }
+
+    function toggleCategory(catId, ids, enabled) {
+        loadConfig().then(function (config) {
+            var disabledSet = {};
+            (config.DisabledBuiltInIds || []).forEach(function (id) { disabledSet[id] = true; });
+
+            ids.forEach(function (id) {
+                if (enabled) {
+                    delete disabledSet[id];
+                } else {
+                    disabledSet[id] = true;
+                }
+            });
+
+            config.DisabledBuiltInIds = Object.keys(disabledSet);
+            return saveConfig(config);
+        }).then(function () {
+            setStatus('Category "' + catId + '" ' + (enabled ? 'enabled' : 'disabled') + '.');
+            refresh();
+        }).catch(function (err) {
+            setStatus('Save failed: ' + err.message, true);
+        });
+    }
+
+    function renderUploaded(uploaded) {
+        statsUploaded.textContent = uploaded.length;
+        uploadedEl.innerHTML = '';
+        if (uploaded.length === 0) {
+            uploadedEl.innerHTML = '<div class="hint" style="grid-column: 1/-1;">No custom uploads yet.</div>';
+            return;
+        }
+        uploaded.forEach(function (a) {
+            var card = document.createElement('div');
+            card.className = 'avatars-uploaded-card';
+            card.title = a.displayName;
+            card.innerHTML =
+                '<img loading="lazy" src="' + escapeHtml(a.url) + '" alt="' + escapeHtml(a.displayName) + '" />' +
+                '<button class="delete-btn" type="button" aria-label="Delete">×</button>' +
+                '<span class="label">' + escapeHtml(a.displayName) + '</span>';
+            card.querySelector('.delete-btn').addEventListener('click', function () { deleteUpload(a.id); });
+            uploadedEl.appendChild(card);
+        });
+    }
+
+    function deleteUpload(id) {
+        if (!confirm('Delete this avatar from the pool? Users currently using it will keep their picture until they pick another.')) return;
+        authFetch('Avatars/Upload/' + encodeURIComponent(id), { method: 'DELETE' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                setStatus('Deleted.');
+                refresh();
+            }).catch(function (err) { setStatus('Delete failed: ' + err.message, true); });
+    }
+
+    function uploadFiles(files) {
+        if (!files || files.length === 0) return;
+        setStatus('Uploading ' + files.length + ' file' + (files.length > 1 ? 's' : '') + '…');
+        var ops = Array.prototype.map.call(files, function (file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            return authFetch('Avatars/Upload', { method: 'POST', body: fd })
+                .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(file.name + ': HTTP ' + r.status)); });
+        });
+        Promise.all(ops).then(function () {
+            setStatus('Upload complete.');
+            refresh();
+        }).catch(function (err) {
+            setStatus(err.message, true);
+            refresh();
+        });
+    }
+
+    function refresh() {
+        return Promise.all([
+            loadConfig(),
+            authFetch('Avatars/Catalog/Categories').then(function (r) { return r.json(); }),
+            authFetch('Avatars/Catalog/Avatars?categoryId=uploaded').then(function (r) { return r.json(); }),
+            authFetch('Avatars/Catalog/Avatars').then(function (r) { return r.json(); }),
+        ]).then(function (results) {
+            var config = results[0];
+            var categories = results[1] || [];
+            var uploaded = results[2] || [];
+            var allAvatars = results[3] || [];
+
+            statsCategories.textContent = categories.filter(function (c) { return c.id !== 'uploaded'; }).length;
+            statsBuiltIn.textContent = allAvatars.filter(function (a) { return a.kind === 'BuiltIn'; }).length;
+
+            renderUploaded(uploaded);
+            return renderCategories(config, categories);
+        }).catch(function (err) {
+            setStatus('Could not load: ' + err.message, true);
+        });
+    }
+
+    // Drag-and-drop handlers
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        uploadZone.addEventListener(ev, function (e) {
+            e.preventDefault();
+            uploadZone.classList.add('is-drag');
+        });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        uploadZone.addEventListener(ev, function (e) {
+            e.preventDefault();
+            uploadZone.classList.remove('is-drag');
+        });
+    });
+    uploadZone.addEventListener('drop', function (e) {
+        if (e.dataTransfer && e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', function (e) {
+        uploadFiles(e.target.files);
+        fileInput.value = '';
     });
 
-    html += "</div>";
-    avatarListContainer.innerHTML = html;
-
-    avatarListContainer
-      .querySelectorAll(".delete-button")
-      .forEach(function (btn) {
-        btn.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          deleteAvatar(this.getAttribute("data-avatar-id"));
-        });
-      });
-  }
-
-  function deleteAvatar(avatarId) {
-    if (!confirm("Delete this avatar?")) {
-      return;
-    }
-
-    Dashboard.showLoadingMsg();
-
-    ApiClient.fetch({
-      url: ApiClient.getUrl("/Avatars/Delete/" + avatarId),
-      type: "DELETE",
-      dataType: "json",
-    })
-      .then(function () {
-        Dashboard.hideLoadingMsg();
-        loadAvatars();
-      })
-      .catch(function (error) {
-        console.error("Failed to delete avatar:", error);
-        Dashboard.hideLoadingMsg();
-        Dashboard.alert({
-          message: "Failed to delete avatar.",
-          title: "Error",
-        });
-      });
-  }
-
-  async function uploadAvatar() {
-    if (!selectedFiles || selectedFiles.length === 0) {
-      Dashboard.alert({
-        message: "Please select at least one file first.",
-        title: "No File",
-      });
-      return;
-    }
-
-    Dashboard.showLoadingMsg();
-
-    let successCount = 0;
-    let failCount = 0;
-    const errors = [];
-
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch(ApiClient.getUrl("/Avatars/Upload"), {
-          method: "POST",
-          headers: { "X-Emby-Token": ApiClient.accessToken() },
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || "Upload failed");
-        }
-
-        await response.json();
-        successCount++;
-      } catch (error) {
-        console.error("Failed to upload avatar:", file.name, error);
-        failCount++;
-        errors.push(file.name + ": " + error.message);
-      }
-    }
-
-    Dashboard.hideLoadingMsg();
-
-    fileInput.value = "";
-    selectedFiles = [];
-    selectedFileDiv.classList.remove("visible");
-    uploadButton.classList.remove("visible");
-
-    loadAvatars();
-
-    if (failCount === 0) {
-      Dashboard.alert({
-        message: successCount + " avatar(s) uploaded successfully!",
-        title: "Success",
-      });
-    } else if (successCount > 0) {
-      Dashboard.alert({
-        message:
-          successCount +
-          " avatar(s) uploaded, " +
-          failCount +
-          " failed.\n\n" +
-          errors.join("\n"),
-        title: "Partial Success",
-      });
-    } else {
-      Dashboard.alert({
-        message: "All uploads failed.\n\n" + errors.join("\n"),
-        title: "Error",
-      });
-    }
-  }
-
-  fileInput.addEventListener("change", function () {
-    if (this.files && this.files.length > 0) {
-      const files = Array.from(this.files);
-
-      if (files.length > 10) {
-        Dashboard.alert({
-          message: "You can upload a maximum of 10 files at once.",
-          title: "Too Many Files",
-        });
-        this.value = "";
-        selectedFiles = [];
-        selectedFileDiv.classList.remove("visible");
-        uploadButton.classList.remove("visible");
-        return;
-      }
-
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ];
-      const validFiles = [];
-      const errors = [];
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-
-        if (file.size > 5 * 1024 * 1024) {
-          errors.push(file.name + " exceeds 5 MB limit");
-          continue;
-        }
-
-        if (!allowedTypes.includes(file.type)) {
-          errors.push(file.name + " has invalid file type");
-          continue;
-        }
-
-        validFiles.push(file);
-      }
-
-      if (errors.length > 0) {
-        Dashboard.alert({
-          message:
-            "Some files were rejected:\n\n" +
-            errors.join("\n") +
-            "\n\nValid files: " +
-            validFiles.length,
-          title: "File Validation",
-        });
-      }
-
-      if (validFiles.length === 0) {
-        this.value = "";
-        selectedFiles = [];
-        selectedFileDiv.classList.remove("visible");
-        uploadButton.classList.remove("visible");
-        return;
-      }
-
-      selectedFiles = validFiles;
-      fileNameSpan.textContent =
-        validFiles.length === 1
-          ? validFiles[0].name
-          : validFiles.length + " files selected";
-      selectedFileDiv.classList.add("visible");
-      uploadButton.classList.add("visible");
-    } else {
-      selectedFiles = [];
-      selectedFileDiv.classList.remove("visible");
-      uploadButton.classList.remove("visible");
-    }
-  });
-
-  uploadButton.addEventListener("click", uploadAvatar);
-
-  view.addEventListener("viewshow", function () {
-    loadAvatars();
-  });
-}
+    // Wait for the dashboard's pageshow signal so ApiClient is bound.
+    document.addEventListener('pageshow', refresh);
+    if (window.ApiClient) refresh();
+})();

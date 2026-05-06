@@ -2,45 +2,98 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <title>Avatars Configuration</title>
+    <meta charset="utf-8" />
+    <title>Avatars</title>
+    <style>
+        .avatars-admin { padding: 1em; max-width: 1100px; }
+        .avatars-admin section { margin-bottom: 2em; }
+        .avatars-admin h2 { margin: 0 0 0.4em 0; font-size: 1.15em; }
+        .avatars-admin .hint { opacity: 0.7; font-size: 0.9em; margin-bottom: 0.8em; }
+        .avatars-stats { display: flex; gap: 1em; flex-wrap: wrap; margin-bottom: 1em; }
+        .avatars-stat { padding: 0.6em 0.9em; border-radius: 8px; background: rgba(255,255,255,0.05); min-width: 120px; }
+        .avatars-stat .label { font-size: 0.8em; opacity: 0.7; }
+        .avatars-stat .value { font-size: 1.4em; font-weight: 600; }
+
+        .avatars-admin .upload-zone {
+            border: 2px dashed rgba(255,255,255,0.25); border-radius: 10px;
+            padding: 1.6em 1em; text-align: center; transition: border-color 0.15s, background 0.15s;
+            cursor: pointer;
+        }
+        .avatars-admin .upload-zone:hover, .avatars-admin .upload-zone.is-drag {
+            border-color: #52B54B; background: rgba(82,181,75,0.08);
+        }
+        .avatars-admin .upload-zone input[type="file"] { display: none; }
+
+        .avatars-cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6em; }
+        .avatars-cat-card {
+            display: flex; align-items: center; gap: 0.7em;
+            padding: 0.6em 0.8em; border-radius: 8px;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        }
+        .avatars-cat-card label { flex: 1; cursor: pointer; }
+        .avatars-cat-card .count { opacity: 0.6; font-size: 0.85em; }
+
+        .avatars-uploaded-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.6em; }
+        .avatars-uploaded-card {
+            position: relative; aspect-ratio: 1/1; border-radius: 10px; overflow: hidden;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        }
+        .avatars-uploaded-card img { width: 100%; height: 100%; object-fit: cover; }
+        .avatars-uploaded-card .delete-btn {
+            position: absolute; top: 0.3em; right: 0.3em; width: 1.6em; height: 1.6em;
+            border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: 0;
+            cursor: pointer; font-weight: 700; line-height: 1.4em;
+        }
+        .avatars-uploaded-card .delete-btn:hover { background: rgba(220,80,80,0.9); }
+        .avatars-uploaded-card .label {
+            position: absolute; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.75));
+            color: #fff; padding: 0.3em 0.5em 0.4em; font-size: 0.7em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .avatars-status { padding: 0.5em 0; opacity: 0.75; min-height: 1.4em; }
+    </style>
 </head>
 
 <body>
-  <div id="AvatarsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
-    data-require="emby-input,emby-button" data-controller="__plugin/AvatarsConfig">
-    <div data-role="content">
-      <div class="content-primary">
+    <div data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary avatars-admin">
+                <h1>Avatars</h1>
 
-        <div class="verticalSection">
-          <h2 class="sectionTitle">Avatars</h2>
+                <section>
+                    <div class="avatars-stats" data-avatars-stats>
+                        <div class="avatars-stat"><div class="label">Built-in</div><div class="value" data-stat-builtin>—</div></div>
+                        <div class="avatars-stat"><div class="label">Uploaded</div><div class="value" data-stat-uploaded>—</div></div>
+                        <div class="avatars-stat"><div class="label">Categories</div><div class="value" data-stat-categories>—</div></div>
+                    </div>
+                    <div class="avatars-status" data-avatars-status></div>
+                </section>
+
+                <section>
+                    <h2>Built-in catalog</h2>
+                    <p class="hint">Toggle a category off to hide it from users. Already-applied selections remain visible until users pick another.</p>
+                    <div class="avatars-cat-list" data-avatars-categories></div>
+                </section>
+
+                <section>
+                    <h2>Upload custom avatars</h2>
+                    <p class="hint">Drop PNG / JPG / WebP files (5 MB max each). Duplicate uploads are deduplicated by SHA-256.</p>
+                    <label class="upload-zone" data-avatars-uploadzone>
+                        <input type="file" multiple accept="image/png,image/jpeg,image/gif,image/webp" data-avatars-fileinput />
+                        <div>Click or drag files here to upload</div>
+                    </label>
+                </section>
+
+                <section>
+                    <h2>Uploaded pool</h2>
+                    <div class="avatars-uploaded-grid" data-avatars-uploaded></div>
+                </section>
+            </div>
         </div>
 
-        <div class="upload-box">
-          <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple />
-          <label for="avatarFileInput" class="upload-label">
-            <span class="material-icons" style="font-size: 1.1em">add_photo_alternate</span>
-            Add Avatars
-          </label>
-          <span class="upload-info">JPG, PNG, WebP • Max 5MB each • Up to 10 files</span>
-          <span id="selectedFile" class="selected-file-name"><span id="fileName"></span></span>
-          <button id="uploadButton" is="emby-button" type="button" class="raised button-submit">
-            Upload
-          </button>
-        </div>
-
-        <div class="verticalSection">
-          <div class="avatar-list-header">
-            <h3>Avatars</h3>
-            <span id="avatarCount" class="avatar-count"></span>
-          </div>
-          <div id="avatarList">
-            <div class="loading-state">Loading...</div>
-          </div>
-        </div>
-      </div>
+        <script type="text/javascript" src="configPage.js"></script>
     </div>
-  </div>
 </body>
 
 </html>
