@@ -64,7 +64,7 @@ public class AssetsController : ControllerBase
     /// <param name="kind">The avatar source kind.</param>
     /// <param name="avatarId">The avatar id within that source.</param>
     /// <returns>The image content with the appropriate <c>Content-Type</c>.</returns>
-    [HttpGet("Image/{kind}/{avatarId}")]
+    [HttpGet("Image/{kind}/{*avatarId}")]
     public IActionResult GetImage(AvatarKind kind, string avatarId)
     {
         var path = ResolvePath(kind, avatarId);

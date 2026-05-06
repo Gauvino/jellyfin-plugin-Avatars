@@ -77,8 +77,11 @@ public class UserAvatarService
         var userDataPath = Path.Combine(_appPaths.DataPath, "users", userId.ToString("N"));
         Directory.CreateDirectory(userDataPath);
 
+        // Built-in / imported avatar ids are namespaced as "{categoryId}/{slug}" — replace
+        // path separators so the filename stays a single segment.
+        var safeId = avatarId.Replace('/', '_').Replace('\\', '_');
         var timestamp = DateTime.UtcNow.Ticks;
-        var profileImagePath = Path.Combine(userDataPath, $"profile_avatar_{avatarId}_{timestamp}{ext}");
+        var profileImagePath = Path.Combine(userDataPath, $"profile_avatar_{safeId}_{timestamp}{ext}");
 
         var oldProfileImagePath = user.ProfileImage?.Path;
 
