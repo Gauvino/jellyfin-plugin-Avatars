@@ -27,6 +27,10 @@ namespace Jellyfin.Plugin.Avatars
             serviceCollection.AddSingleton<UserAvatarService>();
 
             serviceCollection.AddSingleton<IStartupFilter, ScriptInjectorStartup>();
+
+            // Hosted services run in registration order. Migration must precede validation
+            // so the validator sees the post-migration state.
+            serviceCollection.AddHostedService<LegacyMigrationHostedService>();
             serviceCollection.AddHostedService<AvatarValidationService>();
         }
     }
