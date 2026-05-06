@@ -19,16 +19,22 @@ namespace Jellyfin.Plugin.Avatars.Controllers;
 public class AssetsController : ControllerBase
 {
     private readonly UploadedAvatarService _uploadedService;
+    private readonly BuiltInCatalogService _builtInService;
     private readonly ILogger<AssetsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssetsController"/> class.
     /// </summary>
     /// <param name="uploadedService">The uploaded-avatar provider.</param>
+    /// <param name="builtInService">The built-in catalog provider.</param>
     /// <param name="logger">The logger.</param>
-    public AssetsController(UploadedAvatarService uploadedService, ILogger<AssetsController> logger)
+    public AssetsController(
+        UploadedAvatarService uploadedService,
+        BuiltInCatalogService builtInService,
+        ILogger<AssetsController> logger)
     {
         _uploadedService = uploadedService;
+        _builtInService = builtInService;
         _logger = logger;
     }
 
@@ -84,9 +90,9 @@ public class AssetsController : ControllerBase
         return kind switch
         {
             AvatarKind.Uploaded => _uploadedService.TryGetPath(avatarId),
+            AvatarKind.BuiltIn => _builtInService.TryGetPath(avatarId),
 
-            // Wired in chunk #6 (BuiltInCatalogService) and the imports chunk.
-            AvatarKind.BuiltIn => null,
+            // Wired when CollectionImportService lands.
             AvatarKind.Imported => null,
 
             _ => null,

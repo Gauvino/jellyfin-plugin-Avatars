@@ -33,6 +33,8 @@
     <None Remove="Configuration\Web\clientScript.js" />
     <EmbeddedResource Include="Configuration\Web\clientScript.js" />
     <EmbeddedResource Include="assets\banner.png" />
+    <None Remove="Resources\avatars-builtin.zip" />
+    <EmbeddedResource Include="Resources\avatars-builtin.zip" />
   </ItemGroup>
 
   <ItemGroup>

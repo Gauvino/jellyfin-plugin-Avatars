@@ -22,6 +22,7 @@ namespace Jellyfin.Plugin.Avatars
         /// <inheritdoc />
         public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
         {
+            serviceCollection.AddSingleton<BuiltInCatalogService>();
             serviceCollection.AddSingleton<UploadedAvatarService>();
             serviceCollection.AddSingleton<UserAvatarService>();
 

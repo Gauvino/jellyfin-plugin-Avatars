@@ -21,6 +21,7 @@ public class UserAvatarService
     private readonly IUserManager _userManager;
     private readonly IApplicationPaths _appPaths;
     private readonly UploadedAvatarService _uploadedService;
+    private readonly BuiltInCatalogService _builtInService;
     private readonly ILogger<UserAvatarService> _logger;
 
     /// <summary>
@@ -29,16 +30,19 @@ public class UserAvatarService
     /// <param name="userManager">Jellyfin user manager.</param>
     /// <param name="appPaths">Jellyfin application paths.</param>
     /// <param name="uploadedService">Provider for <see cref="AvatarKind.Uploaded"/> sources.</param>
+    /// <param name="builtInService">Provider for <see cref="AvatarKind.BuiltIn"/> sources.</param>
     /// <param name="logger">The logger.</param>
     public UserAvatarService(
         IUserManager userManager,
         IApplicationPaths appPaths,
         UploadedAvatarService uploadedService,
+        BuiltInCatalogService builtInService,
         ILogger<UserAvatarService> logger)
     {
         _userManager = userManager;
         _appPaths = appPaths;
         _uploadedService = uploadedService;
+        _builtInService = builtInService;
         _logger = logger;
     }
 
@@ -297,9 +301,7 @@ public class UserAvatarService
         return kind switch
         {
             AvatarKind.Uploaded => _uploadedService.TryGetPath(avatarId),
-
-            // Wired in chunk #6 (BuiltInCatalogService).
-            AvatarKind.BuiltIn => null,
+            AvatarKind.BuiltIn => _builtInService.TryGetPath(avatarId),
 
             // Wired when CollectionImportService lands.
             AvatarKind.Imported => null,
